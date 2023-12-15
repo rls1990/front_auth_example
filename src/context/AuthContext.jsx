@@ -16,10 +16,36 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [errors, setErrors] = useState([]);
 
   useEffect(() => {
     verifyTokens();
   }, []);
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      const timer = setTimeout(() => {
+        setErrors([]);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [errors]);
+
+  useEffect(() => {
+    let idint = 0;
+    // Verificar tokens antes que se cumplan los 5 minutos.
+    if (isAuthenticated) {
+      idint = setInterval(() => {
+        verifyTokens();
+      }, 1000 * 50 * 5);
+    }
+
+    return () => {
+      console.log("stop interval");
+      clearInterval(idint); // Limpia el intervalo cuando el componente se desmonte
+    };
+  }, [isAuthenticated]);
 
   const singin = async (user) => {
     try {
@@ -41,7 +67,8 @@ export const AuthProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      console.log(error);
+      //console.log(error.response.data.message);
+      if (error.response.data.message) setErrors([error.response.data.message]);
     }
   };
 
@@ -50,27 +77,26 @@ export const AuthProvider = ({ children }) => {
     Cookies.remove("rToken");
     setIsAuthenticated(false);
     setUser(null);
+    setLoading(false);
   };
 
   const verifyTokens = () => {
     const cookies = Cookies.get();
     if (!cookies.rToken) {
-      //If there is no refresh token, I close the session
-      setIsAuthenticated(false);
-      setUser(null);
-      setLoading(false);
-      Cookies.remove("aToken");
-    } else if (!cookies.aToken) {
-      generateAT(); //If the refresh token exists but the access token does not exist, I generate it
+      //Si no hay token de actualización, cierro la sesión
+      logout();
+    } else if (cookies.rToken && !cookies.aToken) {
+      //Si existe el token de acctualización pero no existe el token de acceso se genera un nuevo token de acceso, si da error cierro sesión
+      generateAT();
     } else {
-      verifyAT(); //If the refresh token and the access token exist, I verify the access token
+      //Si existe el token de actualización y el token de acceso verifico el token de acceso, si da error cierro sesión
+      verifyAT();
     }
   };
 
   const verifyAT = async () => {
     const res = await verify().catch((err) => {
       console.log(err);
-      setIsAuthenticated(false);
       logout();
       return;
     });
@@ -79,13 +105,13 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setLoading(false);
       setUser(res.data.user);
+      console.log("Token de acceso verificado.");
     }
   };
 
   const generateAT = async () => {
     const res = await refreshAT().catch((err) => {
       console.log(err);
-      setIsAuthenticated(false);
       logout();
       return;
     });
@@ -111,7 +137,7 @@ export const AuthProvider = ({ children }) => {
         singin,
         logout,
         loading,
-        verifyTokens,
+        errors,
       }}
     >
       {children}

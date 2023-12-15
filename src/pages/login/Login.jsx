@@ -5,14 +5,21 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 export default function Login() {
-  const { isAuthenticated, singin } = useAuth();
-  const { register, handleSubmit } = useForm();
+  const { isAuthenticated, singin, errors } = useAuth();
+  const { register, handleSubmit, reset } = useForm();
 
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) navigate("/admin");
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      console.log(errors);
+      reset();
+    }
+  }, [errors]);
 
   const onSubmit = handleSubmit((values) => {
     singin(values);
@@ -43,7 +50,15 @@ export default function Login() {
             borderWidth: 1,
           }}
         >
-          <h2>Login</h2>
+          <h2 className="center">Login</h2>
+
+          {errors.length > 0 &&
+            errors.map((message, index) => (
+              <div key={index}>
+                <p className="red-text text-darken-3">{message}</p>
+              </div>
+            ))}
+
           <form onSubmit={onSubmit}>
             <div className="row">
               <div className="input-field col s12">

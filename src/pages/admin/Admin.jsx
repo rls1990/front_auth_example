@@ -6,7 +6,7 @@ import Users from "../users/Users";
 
 /* eslint-disable react-hooks/exhaustive-deps */
 export default function Admin() {
-  const { logout, isAuthenticated, verifyTokens } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
 
@@ -18,20 +18,13 @@ export default function Admin() {
     <>
       <nav className="grey darken-3">
         <div className="nav-wrapper">
-          <Link
-            to={"/admin"}
-            className="brand-logo"
-            style={{ marginLeft: 20 }}
-            onClick={() => verifyTokens()}
-          >
+          <Link to={"/admin"} className="brand-logo" style={{ marginLeft: 20 }}>
             Admin
           </Link>
 
           <ul id="nav-mobile" className="right hide-on-med-and-down">
             <li>
-              <Link to={"users"} onClick={() => verifyTokens()}>
-                Users
-              </Link>
+              <Link to={"users"}>Users</Link>
             </li>
             <li>
               <Link to={"/"} onClick={() => logout()}>
