@@ -56,13 +56,13 @@ export const AuthProvider = ({ children }) => {
 
         Cookies.set("aToken", res.data.accessToken, {
           secure: true,
-          expires: new Date(Date.now() + 5 * 60 * 1000), //5m
+          expires: new Date(Date.now() + 5 * 60 * 1000), //dura 5m
           sameSite: "none",
         });
 
         Cookies.set("rToken", res.data.refreshToken, {
           secure: true,
-          expires: 1, // 1 día
+          expires: 1, //dura 1 día
           sameSite: "none",
         });
       }
